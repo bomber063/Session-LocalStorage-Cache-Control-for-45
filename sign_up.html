@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>注册界面</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        body {
+            border: 1px solid red;
+            /* vh不兼容IE，可以兼容手机端浏览器 */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* coloumn变成纵向排列 */
+            flex-direction: column;
+        }
+
+        /* 这里可以直接写body里面是height：100%,或者还可以写成
+                html{
+            height:100%;
+        }
+        body{
+            min-height:100%;
+        }也可以实现西面19和22行代码选择器一起的效果，这个可以兼容IE浏览器 */
+        .form-wrap {
+            border: 1px solid #ddd;
+            padding: 20px;
+            min-width: 380px;
+        }
+
+        .form-wrap .row {
+            margin: 10px 0px;
+        }
+
+        .form-wrap .row>label {
+            display: inline-block;
+            min-width: 4em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-wrap">
+        <h1>注册</h1>
+        <form id="signUpForm">
+            <div class="row">
+                <label>邮箱</label>
+                <input type="text" name="email">
+                <span class="error"></span>
+            </div>
+            <div class="row">
+                <label>密码</label>
+                <input type="password" name="password">
+                <span class="error"></span>
+            </div>
+            <div class="row">
+                <label>确认密码</label>
+                <input type="password" name="password_confirmation">
+                <span class="error"></span>
+            </div>
+            <div class="row">
+                <input type="submit" value="注册">
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        let $form = $('#signUpForm')
+        $form.on('submit', (e) => {
+            // console.log(e)//这里的e就是一堆的事件
+            e.preventDefault()
+            let hash = {}
+            let need = ['email', 'password', 'password_confirmation']
+            need.forEach((name) => {
+                let value = $form.find(`[name=${name}]`).val()
+                hash[name] = value
+            })
+            // $form.find('.error').text('')
+            $form.find('.error').each((value,index)=>{//这个是为了刚开始清空文字，不然文字会一直显示不会消失
+                $(index).text('')
+            })//这三行代码效果跟上面效果一样，只是感觉
+            if (hash['email'] === '') {
+                $form.find('[name="email"]').siblings('.error').text('请填写邮箱')
+                return//这里return代表就返回结束中止了，也就是不执行下面的post请求，如果不写，会继续执行下面的代码会导致显示邮箱格式错误。这里把下面加上else if也可以
+            }
+            if(hash['password']===''){
+                $form.find('[name="password"]').siblings('.error').text('请填写密码')
+                return//这里return代表就返回结束中止了，也就是不执行下面的post请求，如果不写，会继续执行下面的代码会导致显示邮箱格式错误。这里把下面加上else if也可以
+            }
+            if(hash['password_confirmation']===''){
+                $form.find('[name="password_confirmation"]').siblings('.error').text('填写确认密码')
+                return//这里return代表就返回结束中止了，也就是不执行下面的post请求，如果不写，会继续执行下面的代码会导致显示邮箱格式错误。这里把下面加上else if也可以
+            }
+            if(hash['password_confirmation']!==hash['password']){
+                $form.find('[name="password_confirmation"]').siblings('.error').text('密码不匹配')
+                return//这里return代表就返回结束中止了，也就是不执行下面的post请求，如果不写，会继续执行下面的代码会导致显示邮箱格式错误。这里把下面加上else if也可以
+            }
+            $.post('/sign_up', hash)//这个post请求发出去后，后台返回的是符合html语法的一串字符串，因为后端只有路径，没有get或者post的的方法要求。而且返回的也是一串字符串
+                .then(
+                    (r) => { 
+                        window.location.href = '/sign_in'//注册成功之后跳转到登陆界面
+                        console.log('成功', r) },//这里的r就是服务器返回的response，也就是符合html语法的字符串
+                    (request) => {
+                        // if(request.responseText==='bad email')
+                        // alert('邮箱写错了')}//这里第一个请求a是对象,也就是request，第二个请求b是'error',第三个请求c是http的状态信息'Bad Request'
+                        // let object = JSON.parse(request.responseText)
+                        // let errors=object.errors
+                        // let { errors } = object//这句就意思就是上面一行代码的意思，是ES6的写法
+                        // let {errors}=JSON.parse(request.responseText)//这一行代码把上面几行的代码缩减为这一行代码
+                        // let {errors}=JSON. 
+                        let { errors } = request.responseJSON
+                        if (errors.email && errors.email === 'invalid') {//当errors存在并且等于'invalid'的时候告诉用户错在哪里
+                            $form.find('[name="email"]').siblings('.error').text('邮箱格式错误')
+                            // alert('邮箱格式错误')
+                        }
+                        // console.log(request.responseJSON)
+                    }
+                )
+        })
+
+    </script>
+</body>
+
+</html>
