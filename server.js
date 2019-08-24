@@ -7,6 +7,7 @@ if (!port) {
   console.log('请指定端口号好不啦？\nnode server.js 8888 这样不会吗？')
   process.exit(1)
 }
+let sessions={}
 
 var server = http.createServer(function (request, response) {
   var parsedUrl = url.parse(request.url, true)
@@ -23,7 +24,12 @@ var server = http.createServer(function (request, response) {
 
   if (path === '/') {
     let string = fs.readFileSync('./index.html', 'utf8')
-    let cookie=request.headers.cookie.split('; ')//这里是分号空格来分隔这个cookie，这个cookie类似于a=1; b=2; sign_in_email=eee
+    let cookie=''
+    if(request.headers.cookie){//当直接进入主页的时候，是没有用户上传的这个request.headers.cookie,那么服务器就会断开，request.headers.cookie是undefined，
+      //当从登陆界面进入的时候，这个request.headers.cookie是存在的，所以需要做一个判断
+      cookie=request.headers.cookie.split('; ')//这里是分号空格来分隔这个cookie，这个cookie类似于a=1; b=2; sign_in_email=eee
+      //下面要用到cookie.length。所以如果cookie不存在的时候，为了可以使用，需要前面写上let cookie=''
+    }
     let hash={}
     for(i=0;i<cookie.length;i++){
       let parts=cookie[i].split('=')//继续用=来分隔这个cookie
@@ -31,9 +37,12 @@ var server = http.createServer(function (request, response) {
       let value=parts[1]//这个第二部分就是cookie的值，对应邮箱
       hash[key]=value//把所有的信息都存入这个hash
       // console.log(hash)
-      console.log(hash)
     }
-    let email=hash.sign_in_email
+    let email
+    if(sessions[hash.sessionId]){
+      email=sessions[hash.sessionId].sign_in_email//这个sessions[hash.sessionId]一旦服务器断开后就释放不存在了，一般服务器不会断开,或者关闭之前会把session存到一个地方
+      //如果这个cookie本来已经保存在浏览器里面，那么就不需要判断，所以最好是判断一下
+    }
     let users=fs.readFileSync('./db/users','utf8')//读取数据库中存储的信息
     users=JSON.parse(users)//把数据库中的字符串转换为对象
     let found=false
@@ -190,7 +199,9 @@ var server = http.createServer(function (request, response) {
           }
         }
         if(found){//如果匹配就200成功
-          response.setHeader('Set-Cookie', `sign_in_email=${email}`)
+          let sessionId=Math.random()*100000//设置一个随机的sessionId
+          sessions[sessionId]={sign_in_email:email}//我们把用户的邮箱存到sessions里面，sessions对应的sessionId就可以找到某个用户的信息
+          response.setHeader('Set-Cookie', `sessionId=${sessionId}`)//把这个sessionId作为Cookie
           response.statusCode = 200
         }else{//如果不匹配就401验证失败
           response.statusCode = 401//401的意思是邮箱密码等验证失败的代码，而且必须要放到该路由的最前面才可以
