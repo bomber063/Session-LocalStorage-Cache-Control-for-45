@@ -3,7 +3,7 @@
 * 本次用的是上次[Cookie说明](https://github.com/bomber063/Cookie-sign-in-for-44)的代码.
 * 我们通过测试知道，只要数据库中存在了一个用户的信息，比如邮箱或者密码，那么通过开发者工具中**修改这个Cookie对应的值**就可以更改这个Cookie从而获取到其他用户的个人隐私信息。
 * 那么只要用户猜不到，或者**不知道这个Cookie的具体含义就可以解决问题了**。
-* 用到的API——(Math.random())(https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/random)函数返回一个浮点,  伪随机数在范围[0，1)，也就是说，从0（包括0）往上，但是不包括1（排除1），然后您可以缩放到所需的范围。实现将初始种子选择到随机数生成算法;它不能被用户选择或重置。
+* 用到的API——[Math.random()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/random)函数返回一个浮点,  伪随机数在范围[0，1)，也就是说，从0（包括0）往上，但是不包括1（排除1），然后您可以缩放到所需的范围。实现将初始种子选择到随机数生成算法;它不能被用户选择或重置。
 * 之前我们是直接存入邮箱,并且这个邮箱及用户的信息都是存在数据库中的，说明不管刷新与否都已经保存下来。
 ```
           response.setHeader('Set-Cookie', `sign_in_email=${email}`)
@@ -71,11 +71,12 @@ Cookie: sessionId=73612.66996228874
 * 如果给每个用户分配1MB大小的session内存，假设服务器有1000MB可以存储，那么就最对可以服务一千个用户，用户多了这个服务器就不行了。但是一般来说一个用户所占用的内存可能只有1KB差不多了。比如只需要存入一个用户的ID就够了。或者存入一个email
 ***
 ### 用一句话来说什么是Cookie和Session
-* Cookie
+#### Cookie
 1. 服务器通过Set-Cookie头给客户端一串字符串
 2. 客户端每次访问相同域名的网页时，必须带上这段字符串
 3. 客户端要在一段时间内保存这个Cookie
-* Session
+4. 相对于session来说不占用内存
+#### Session
 * 讲故事的方法就是如果把这个用户的隐私信息直接存到Cookie里面，用户可以看到也可以直接篡改，用作一个ID对应这个用户的隐藏信息就解决啦，这个就是Session
 * 逻辑描述的方式就是
 1. 将SessionId（随机数）通过Cookie发给客户端
@@ -84,5 +85,51 @@ Cookie: sessionId=73612.66996228874
 4. 这个保存了所有Session的这块内存（对象或者哈希表）可以通过SessionId可以得到对应某个用户的Session的隐私信息，如id、email、余额等信息
 5. 这块内存（对象或者哈希表）就是服务器上的所有Session，所以这个Session可以是复数，比如Sessions。
 6. 对于服务器上保存了很多个Session，对于某个用户来说就是一个Session
+7. session相对于Cookie来说占用内存
 * 其他知识点，就是这个哈希(key-value)，我们在请求http头里面见过，这里的Session也有排序的计数排序也是哈希来做，很多地方用到哈希，所以这个很重要。
+### localStorage
+* 它是HTML5技术提供的一个API——[localStorage](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/localStorage)。所有新的WEB技术统称为HTML5，包括新的标签、新的Promise等。在开发者工具中可以直接打出localStorage. 它有四个API
+1. localStorage.setItem('myCat', 'Tom');//增加了一个数据项目
+2. let cat = localStorage.getItem('myCat');//读取 localStorage 项
+3. localStorage.removeItem('myCat');//移除 localStorage 项
+4. localStorage.clear();// 移除所有
+* 还可以通过console.dir(localStorage)查看更多属性和方法
+* localStorage它也是一个哈希，**session是服务器上的一个哈希表，而localStorage是浏览器上的哈希表**。
+* 可以通过开发者工具的Application里面的Storage->localStorage查看到
+#### 通过API就可以存入localStorage到浏览器上
+* 比如**存值**
+```
+localStorage.setItem('a',1)
+localStorage.setItem('b',2)
+localStorage.setItem('fn',function(){console.log(1)})
+```
+* 但是这些存入的只能是**字符串(String)，就算不是字符串也会转换为字符串**
+* 比如存入字符串
+```
+localStorage.setItem('object',{name:'bomber'})
+```
+* 我们通过开发者工具看到显示的**结果是[object Object],说明已经转换为字符串了**，我们任何一个({}).toString()都会变成[object Object].
+* 我们可以通过[JSON.stringify()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)把对象转换为一个JSON字符串的样式来存对象，也就是满足JS对象样式的JSON字符串。
+```
+localStorage.setItem('JSON',JSON.stringify({name:'bomber'}))//存入的结果是{"name":"bomber"}
+```
+* 当然你还可以直接自己存入符合JS对象样式的字符串
+```
+localStorage.setItem('O',`{'name':'bomber'}`)//存入的结果是{'name':'bomber'}
+```
+#### 通过API就可以从浏览器中取出localStorage
+* 比如
+```
+localStorage.getItem('a')//"1"
+localStorage.getItem('b')//"2"
+localStorage.getItem('fn')//"function(){console.log(1)}"
+localStorage.getItem('object')//"[object Object]"
+localStorage.getItem('JSON')//"{"name":"bomber"}"
+localStorage.getItem('O')//"{'name':'bomber'}"
+```
+#### 直接清空localStorage
+* 清空比如
+```
+localStorage.clear()
+```
 
