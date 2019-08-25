@@ -7,8 +7,24 @@
 <body>
   <h1>你的用户名为__zhan__</h1>
   <script>
-    var a=1
-    console.log(a)
+    // var a=1
+    // console.log(a)
+    // var a=localStorage.getItem('a')//从浏览器，其实是C盘中读取到a的值
+    // if(!a){//如果不存在就把a赋值为0
+    //   a=0
+    // }
+    // else{
+    //   a=parseInt(a,10)+1//parseInt字符串转换为数字，如果存在就把a赋值为a+1
+    // }
+    // console.log('a',a)
+    // localStorage.setItem('a',a)//从浏览器，其实是C盘中设置到'a'的值为a
+    let already=localStorage.getItem('已经提示')//首先看看有没有提示
+    if(!already){//如果没有提示，就提示下用户，然后更改localStorage里面为提示过(也就是同时记录下已经提示了)
+      alert('你好，我们的网址改版了，有了这些新功能')
+      localStorage.setItem('已经提示',true)
+    }else{//如果已经提示过就啥都不做
+
+    }
   </script>
 </body>
 </html>
