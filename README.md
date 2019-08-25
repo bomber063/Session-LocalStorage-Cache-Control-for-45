@@ -132,4 +132,18 @@ localStorage.getItem('O')//"{'name':'bomber'}"
 ```
 localStorage.clear()
 ```
+### localStorage的使用
+* 当我们在主页上增加代码
+```
+  <script>
+    var a=1
+    console.log(a)
+  </script>
+```
+* 之后我们打开主页开发者工具在Console里面打印出来的是1，但是当我们在开发者工具中在Console里面输入
+```
+a=2
+```
+之后就会显示a返回的是2。**但是当页面刷新后会这个在开发者工具中在Console里面输入的a=2就没有了，也就是当页面关闭只有这个变量就没有了，a就返回还是主页代码里面的1，也就是a=2已经不存在了**
+* 那么有什么办法可以使第一个页面的时候存在，第二个页面的时候还是之前那个值呢？这就需要通过**localStorage，因为localStorage是存在浏览器的Application->storage->localStorage里面的，不是存在页面里面，他在window电脑里面一般存在C盘的一个文件里面，所以不管页面刷新还是页面开多少，或者页面关闭，它都存在这个文件里面**，我们通过下面代码来测试
 
