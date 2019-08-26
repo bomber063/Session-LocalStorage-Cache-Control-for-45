@@ -279,3 +279,8 @@ a=2
 * 也就是前端`/?sessionId=${object.sessionId}`,这里是反引号,对应后端的query.sessionId
 * 不过这个SessionId就会直接显示在浏览器地址里面
 * 写了这么多就是为了说明Session**大部分时间**是基于Cookie来存储它的ID，但是也可以通过**查询参数和localStorage来存储它的ID**
+### 为什么会把localStorage和Cookie进行比较
+* 这是有历史原因的。因为localStorage是新的API，就是近五年左右出现的，那么在此之前的前端是如何做跨页面的持久化存储呢？只能通过Cookie，Cookie也是存储在C盘的，所以页面刷新在多次这个Cookie在是存储在C盘里面，所以之前的前端都是把数据存到Cookie里面来实现跨页面的。
+* 但是Cookie有一个**缺点**，所有（每一个请求）写到Cookie里面的东西都会带到服务器上去，假设Cookie里面有1KB的字符串，那么每一次请求都会多1KB的大小（本来一个请求只有几百B左右的大小），这样导致数据上传或者**传输的过程会变慢**，所以后面出现新的localStorage就用localStorage了。
+* 所以localStorage和Cookie做**持久化储存肯定是选择localStorage**
+* 一般来说**前端工程师永远不要读取或者写Cookie，因为正常来说Cookie是后端工程师来读取和写的，而且前端有自己的API——localStorage**，另外Cookie一般存储一个写ID，不能存储用户的昵称密码等敏感信息，如果需要取用户的邮箱或者密码就问服务器。服务器会告诉你，Cookie这个东西不靠谱。
