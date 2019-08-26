@@ -193,3 +193,26 @@ a=2
 ```
 5. 常用场景：记录有没有提示过用户（不涉及隐私等敏感的信息，不能记录密码等敏感隐私信息）
 6. LocalStorage永久有效，除非用户自己清除，或者用户清理缓存，在chrome浏览器中按住Ctrl+shift+delete，你就会得到这个清楚这个浏览器的数据操作页面，对应的高级->Cookie及其他网站数据勾选，这个'及其他网站数据'就包括了LocalStorage，如果点击清楚数据，这个LocalStorage就清除了。
+#### sessionStorage的特点
+* [sessionStorage](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/sessionStorage)属性允许你访问一个 session Storage 对象。它与 localStorage 相似，不同之处在于 localStorage 里面存储的数据没有过期时间设置，而存储在 sessionStorage 里面的数据在页面会话结束时会被清除。
+* 它跟localStorage的API一样，也就是
+1. sessionStorage.setItem('myCat', 'Tom');//增加了一个数据项目
+2. let cat = sessionStorage.getItem('myCat');//读取 localStorage 项
+3. sessionStorage.removeItem('myCat');//移除 localStorage 项
+4. sessionStorage.clear();// 移除所有
+* 特点：
+1. 同localStorage
+2. 同localStorage
+3. 同localStorage
+4. 同localStorage
+5. sessionStorage在关闭页面后失效，没有办法和Cookie一样设置失效时间
+* 当存入数据后，把浏览器关闭后，**等几秒钟时间时间后在打开就发现sessionStorage已经清空了**。
+### 面试题
+1. 请问Cookie和session什么关系
+* 一般来说session是基于Cookie实现的——因为session必须将sessionId放到Cookie里面然后发给客户端，没有这个sessionId就没有session，session依赖于Cookie。Cookie是session的基石
+2. Cookie和localStorage的区别是什么
+* 最大的区别就是Cookie每次请求的时候都会带给服务器，而localStorage不会带到服务器上去，因为localStoage跟HTTP无关。
+* 其他的补充：Cookie的储存量一般是4KB，而localStorage会有及5MB(经过测试，我的电脑的所有浏览器可以储存65MB)
+3. localStorage和sessionStorage的区别
+* sessionStorage在用户关闭页面（Session(会话)结束后，这个Session跟服务器上的Session没有一点关系）后失效，
+#### sessionStorage一般是会话存储，而session一般不翻译，因为session就是一个变量名而已
