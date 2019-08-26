@@ -176,4 +176,20 @@ a=2
     }
 ```
 * 这样用户只是第一次进来后看到提示，那么下一次或者刷新页面后就**不会重复提示了，此时他的localStorage已经存下来为'已经提示'这个key**。
-
+#### localStorage的特点
+1. LocalStorage跟HTTP无关(相对于Cookie来说，因为Cookie是HTTP的一个请求头，而这没关系)
+2. 由于第一条的特点，所以HTTP不会带上LocalStorage的值
+3. 只有相同域名的页面才能互相读取LocalStorage，如果QQ域名存储的LocalStorage，百度域名是读取不到的。这个是**浏览器的基本功能**。**但是没有同源那么严格**
+4. 每个域名LocalStorage最大存储量为5MB左右(左右的原因是每个浏览器不一样,**我自己测试我自己的电脑的chrome、IE、Edge,360浏览器都是可以储存65MB，66MB就报错了**)，我们可以测试下自己浏览器存储的最大储存量
+```
+      let s=''
+    for(i=0;i<660000;i++){
+      s+='一二三四五六七八'
+    }
+    console.log(s.length)//i<10000,这样有80000个字符，每个字符是两个字节，一个字节是8位，所以80000*2*8=1280000位
+    //1280000/1024/1024约等于1.22MB
+    localStorage.setItem('aaa',s)//然后乘以65倍存到LocalStorage里面是可以存储的，说明可以存储65MB，
+    //但是如果乘以66倍就报错了，在Chrome浏览器的报错信息(index):36 Uncaught DOMException: Failed to execute 'setItem' on 'Storage': Setting the value of 'aaa' exceeded the quota.
+```
+5. 常用场景：记录有没有提示过用户（不涉及隐私等敏感的信息，不能记录密码等敏感隐私信息）
+6. LocalStorage永久有效，除非用户自己清除，或者用户清理缓存，在chrome浏览器中按住Ctrl+shift+delete，你就会得到这个清楚这个浏览器的数据操作页面，对应的高级->Cookie及其他网站数据勾选，这个'及其他网站数据'就包括了LocalStorage，如果点击清楚数据，这个LocalStorage就清除了。

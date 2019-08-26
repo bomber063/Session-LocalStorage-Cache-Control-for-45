@@ -9,6 +9,7 @@
   <script>
     // var a=1
     // console.log(a)
+
     // var a=localStorage.getItem('a')//从浏览器，其实是C盘中读取到a的值
     // if(!a){//如果不存在就把a赋值为0
     //   a=0
@@ -18,13 +19,22 @@
     // }
     // console.log('a',a)
     // localStorage.setItem('a',a)//从浏览器，其实是C盘中设置到'a'的值为a
-    let already=localStorage.getItem('已经提示')//首先看看有没有提示
-    if(!already){//如果没有提示，就提示下用户，然后更改localStorage里面为提示过(也就是同时记录下已经提示了)
-      alert('你好，我们的网址改版了，有了这些新功能')
-      localStorage.setItem('已经提示',true)
-    }else{//如果已经提示过就啥都不做
 
+    // let already=localStorage.getItem('已经提示')//首先看看有没有提示
+    // if(!already){//如果没有提示，就提示下用户，然后更改localStorage里面为提示过(也就是同时记录下已经提示了)
+    //   alert('你好，我们的网址改版了，有了这些新功能')
+    //   localStorage.setItem('已经提示',true)
+    // }else{//如果已经提示过就啥都不做
+
+    // }
+      let s=''
+    for(i=0;i<660000;i++){
+      s+='一二三四五六七八'
     }
+    console.log(s.length)//i<10000,这样有80000个字符，每个字符是两个字节，一个字节是8位，所以80000*2*8=1280000位
+    //1280000/1024/1024约等于1.22MB
+    localStorage.setItem('aaa',s)//然后乘以65倍存到LocalStorage里面是可以存储的，说明可以存储65MB，
+    //但是如果乘以66倍就报错了，在Chrome浏览器的报错信息(index):36 Uncaught DOMException: Failed to execute 'setItem' on 'Storage': Setting the value of 'aaa' exceeded the quota.
   </script>
 </body>
 </html>
