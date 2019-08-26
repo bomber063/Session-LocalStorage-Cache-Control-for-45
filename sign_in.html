@@ -94,7 +94,10 @@
             $.post('/sign_in', hash)//这个post请求发出去后，后台返回的是符合html语法的一串字符串，因为后端只有路径，没有get或者post的的方法要求。而且返回的也是一串字符串
                 .then(
                     (r) => {
-                        window.location.href = '/'
+                        //不用Cookie的方法，下面三行
+                        let object=JSON.parse(r)
+                        localStorage.setItem('sessionId',object.sessionId)
+                        window.location.href = `/?sessionId=${object.sessionId}`//？是查询参数,首页通过查询参数知道当前用户sessionId是什么
                         console.log('成功', r)
                     },//这里的r就是服务器返回的response，也就是符合html语法的字符串
                     (request) => {

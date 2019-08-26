@@ -208,11 +208,74 @@ a=2
 5. sessionStorage在关闭页面后失效，没有办法和Cookie一样设置失效时间
 * 当存入数据后，把浏览器关闭后，**等几秒钟时间时间后在打开就发现sessionStorage已经清空了**。
 ### 面试题
-1. 请问Cookie和session什么关系
-* 一般来说session是基于Cookie实现的——因为session必须将sessionId放到Cookie里面然后发给客户端，没有这个sessionId就没有session，session依赖于Cookie。Cookie是session的基石
-2. Cookie和localStorage的区别是什么
+#### 1. 请问Cookie和session什么关系
+* **一般来说**session是基于Cookie实现的——因为session必须将sessionId放到Cookie里面然后发给客户端，没有这个sessionId就没有session，session依赖于Cookie。Cookie是session的基石，不基于Cookie的Session见下面
+#### 2. Cookie和localStorage的区别是什么
 * 最大的区别就是Cookie每次请求的时候都会带给服务器，而localStorage不会带到服务器上去，因为localStoage跟HTTP无关。
 * 其他的补充：Cookie的储存量一般是4KB，而localStorage会有及5MB(经过测试，我的电脑的所有浏览器可以储存65MB)
-3. localStorage和sessionStorage的区别
+#### 3. localStorage和sessionStorage的区别
 * sessionStorage在用户关闭页面（Session(会话)结束后，这个Session跟服务器上的Session没有一点关系）后失效，
-#### sessionStorage一般是会话存储，而session一般不翻译，因为session就是一个变量名而已
+#### 其他
+* sessionStorage一般是会话存储，而session一般不翻译，因为session就是一个变量名而已
+### 不基于Cookie的Session(这个有些面试官也不一定知道，所以属于超纲的知识)
+* 本小节有点超纲，前面说过一般情况Session是基于Cookie实现的，**特殊情况**也可以不基于Cookie
+* 实现一个不写Cookie的方法
+* 后端部分登陆页面,把Set-Cookie注释掉，然后传一个JSON给前端
+```
+        if(found){//如果匹配就200成功
+          let sessionId=Math.random()*100000//设置一个随机的sessionId
+          sessions[sessionId]={sign_in_email:email}//我们把用户的邮箱存到sessions里面，sessions对应的sessionId就可以找到某个用户的信息
+          // response.setHeader('Set-Cookie', `sessionId=${sessionId}`)//把这个sessionId作为Cookie
+          response.write(`{"sessionId":${sessionId}}`)//不写Cookie的方法,就是把sessionId通过JSON传给前端
+          response.statusCode = 200
+        }
+```
+* 后端部分主页，把关于Cookie的都注释掉，然后通过查询参数来获取到sessionId
+```
+    let string = fs.readFileSync('./index.html', 'utf8')
+    // let cookie=''
+    // if(request.headers.cookie){//当直接进入主页的时候，是没有用户上传的这个request.headers.cookie,那么服务器就会断开，request.headers.cookie是undefined，
+    //   //当从登陆界面进入的时候，这个request.headers.cookie是存在的，所以需要做一个判断
+    //   cookie=request.headers.cookie.split('; ')//这里是分号空格来分隔这个cookie，这个cookie类似于a=1; b=2; sign_in_email=eee
+    //   //下面要用到cookie.length。所以如果cookie不存在的时候，为了可以使用，需要前面写上let cookie=''
+    // }
+    // let hash={}
+    // for(i=0;i<cookie.length;i++){
+    //   let parts=cookie[i].split('=')//继续用=来分隔这个cookie
+    //   let key=parts[0]//第一部分就是前面设置的cookie名字          response.setHeader('Set-Cookie',`sign_in_email=${email};HttpOnly`)
+    //   let value=parts[1]//这个第二部分就是cookie的值，对应邮箱
+    //   hash[key]=value//把所有的信息都存入这个hash
+    //   // console.log(hash)
+    // }
+    let mySession=sessions[query.sessionId]//query对应前端的查询参数
+    console.log(mySession)
+    let email
+    // if(sessions[hash.sessionId]){
+      if(mySession){
+      email=mySession.sign_in_email//这个sessions[hash.sessionId]一旦服务器断开后就释放不存在了，一般服务器不会断开,或者关闭之前会把session存到一个地方
+      //如果这个cookie本来已经保存在浏览器里面，那么就不需要判断，所以最好是判断一下
+    }
+```
+* 前端登陆页面部分,值写出了第一个then的代码，因为只改了这里的代码，通过把sessionId存到LocalStorage里面，然后通过查询参数传给后台并跳转页面。
+```
+                .then(
+                    (r) => {
+                        //不用Cookie的方法，下面三行
+                        let object=JSON.parse(r)
+                        localStorage.setItem('sessionId',object.sessionId)
+                        window.location.href = `/?sessionId=${object.sessionId}`//？是查询参数,首页通过查询参数知道当前用户sessionId是什么
+                        console.log('成功', r)
+                    },//这里的r就是服务器返回的response，也就是符合html语法的字符串
+```
+* 前端部分的查询参数带代码
+```
+                        window.location.href = `/?sessionId=${object.sessionId}`//？是查询参数,首页通过查询参数知道当前用户sessionId是什么
+
+```
+* 对应后端部分的查询参数代码
+```
+    let mySession=sessions[query.sessionId]//query对应前端的查询参数获取到sessionId
+```
+* 也就是前端`/?sessionId=${object.sessionId}`,这里是反引号,对应后端的query.sessionId
+* 不过这个SessionId就会直接显示在浏览器地址里面
+* 写了这么多就是为了说明Session**大部分时间**是基于Cookie来存储它的ID，但是也可以通过**查询参数和localStorage来存储它的ID**
