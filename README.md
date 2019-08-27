@@ -284,3 +284,27 @@ a=2
 * 但是Cookie有一个**缺点**，所有（每一个请求）写到Cookie里面的东西都会带到服务器上去，假设Cookie里面有1KB的字符串，那么每一次请求都会多1KB的大小（本来一个请求只有几百B左右的大小），这样导致数据上传或者**传输的过程会变慢**，所以后面出现新的localStorage就用localStorage了。
 * 所以localStorage和Cookie做**持久化储存肯定是选择localStorage**
 * 一般来说**前端工程师永远不要读取或者写Cookie，因为正常来说Cookie是后端工程师来读取和写的，而且前端有自己的API——localStorage**，另外Cookie一般存储一个写ID，不能存储用户的昵称密码等敏感信息，如果需要取用户的邮箱或者密码就问服务器。服务器会告诉你，Cookie这个东西不靠谱。
+### HTTP缓存
+* 先从Cache-Control讲起，[Cache-Control](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control)通用消息头字段，被用于在http请求和响应中，通过指定指令来实现缓存机制。它属于Web性能优化的一部分（在中国要讲Web性能优化，是因为以前的前端比较菜，因为以前的前端不知道如何加速网页访问）。
+* 为了能看到请求响应的速度，我们下载一个比较大的CSS和JS。
+* 下载[vue.js](https://cdn.bootcss.com/vue/2.6.10/vue.js)和[bootstrap.css](https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.css)到main.js和default.css里面保存。再次打开主页请求后看到。
+1. 主页的请求时间是6ms,大小19KB
+2. main.js的请求时间是20ms，大小是369KB
+3. default.css的请求时间是15ms，大小是217KB
+* 当然每次刷新时间不一定一样，总的来说都是main.js和default.css都是比主页要慢。
+#### 如何加快速度？
+* 当我们在路由main.js里面写下
+```
+    response.setHeader('Cache-Control','max-age=30')//max-age设置缓存存储的最大周期，超过这个时间缓存被认为过期(单位秒)。与Expires相反，时间是相对于请求的时间。
+```
+* 我们再次看请求的时间，发现main.js第一次刷新后多了一个请求头Cache-Control: max-age=30，当我们在**30s内**再次刷新请求后**显示的时间是0ms，并且大小（size）显示的是memory cache**，也就是20ms变成了0ms。当**超过30s后**再次刷新后，又会显示20ms左右（为什么是左右，因为每次请求时间不一定完全相同）
+* 也就是说第一次浏览器请求服务器一个main.js，然后服务器给了一堆文本，其实有一个请求头是Cache-Control: max-age=30,这里的单位是秒
+1. 如果浏览器在**30秒内请求同样的URL(也就是网址)**，那么浏览器就会**阻断这个请求，没有发请求**，而是直接从内存中返回上一次的main.js。
+2. 如果过了30秒后，浏览器再次请求这个同样的额URL，那么浏览器才会重新发出请求最开始（第一次的请求）的那次请求。
+3. 然后30秒内继续不请求，30秒发出请求，不停的循环
+* 我们继续把CSS的路由改成一样的
+```
+    response.setHeader('Cache-Control','max-age=30')
+```
+* 我们发现**第一次30秒内请求的时候大小(size)会有一个disk cache，也就是从硬盘缓存获取**，而**下一次30秒内会显示大小(size)会有一个memory cache**,这个我就不知道是为啥。经过查看[写代码啦](https://xiedaimala.com/)网站，可以看到不管是JS还是CSS都有可能出现disk cache和memory cache
+* 如果**你选择了Disable cache**,那么就不会从内存里面获取信息，而是每次都会发送请求去获取页面。这样时间就会长一点。测试后如果选择了Disable cache需要下载耗时**7.72s**，但是没有选择Disable cache只需要耗时**709ms**。

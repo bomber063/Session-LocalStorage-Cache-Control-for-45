@@ -21,8 +21,21 @@ var server = http.createServer(function (request, response) {
   /******** 从这里开始看，上面不要看 ************/
 
   console.log('方方说：含查询字符串的路径\n' + pathWithQuery)
-
-  if (path === '/') {
+  if(path==='/main.js'){
+    let string=fs.readFileSync('./main.js','utf8')
+    response.setHeader('Content-Type','application/javascript;charset=utf8')
+    response.setHeader('Cache-Control','max-age=30')
+    response.write(string)
+    response.end()
+  }
+  else if(path==='/default.css'){
+    let string=fs.readFileSync('./default.css','utf8')
+    response.setHeader('Content-Type','text/css;charset=utf8')
+    response.setHeader('Cache-Control','max-age=30')
+    response.write(string)
+    response.end()
+  }
+  else if (path === '/') {
     let string = fs.readFileSync('./index.html', 'utf8')
     // let cookie=''
     // if(request.headers.cookie){//当直接进入主页的时候，是没有用户上传的这个request.headers.cookie,那么服务器就会断开，request.headers.cookie是undefined，
