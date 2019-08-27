@@ -24,14 +24,14 @@ var server = http.createServer(function (request, response) {
   if(path==='/main.js'){
     let string=fs.readFileSync('./main.js','utf8')
     response.setHeader('Content-Type','application/javascript;charset=utf8')
-    response.setHeader('Cache-Control','max-age=30')
+    response.setHeader('Cache-Control','max-age=315360000')
     response.write(string)
     response.end()
   }
   else if(path==='/default.css'){
     let string=fs.readFileSync('./default.css','utf8')
     response.setHeader('Content-Type','text/css;charset=utf8')
-    response.setHeader('Cache-Control','max-age=30')
+    response.setHeader('Cache-Control','max-age=315360000')
     response.write(string)
     response.end()
   }
