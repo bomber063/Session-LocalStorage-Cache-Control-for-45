@@ -308,6 +308,7 @@ a=2
 ```
 * 我们发现**第一次30秒内请求的时候大小(size)会有一个from disk cache，也就是从硬盘缓存获取**，而**下一次30秒内会显示大小(size)会有一个from memory cache**,这个我就不知道是为啥。经过查看[写代码啦](https://xiedaimala.com/)网站，可以看到不管是JS还是CSS都有可能出现from disk cache和from memory cache
 * 如果**你选择了Disable cache**,那么就不会从内存里面获取信息，而是每次都会发送请求去获取页面。这样时间就会长一点。测试后如果选择了Disable cache需要下载耗时**7.72s**，但是没有选择Disable cache只需要耗时**709ms**。
+* [from memory cache与from disk cache](https://blog.csdn.net/garrettzxd/article/details/80684880)
 #### 为什么首页不能设置Cache-Control
 * 如果我们在首页设置了
 ```
@@ -341,3 +342,35 @@ a=2
 * 这样就可以让**网页特别的快**
 * 浏览器会给一个固定大小用来存缓存，如果已经满了，就会清空掉最早的缓存，比如几年前或者一年前的缓存，然后再存现在的缓存，**很有可能后台设置的缓存是存10年，但是浏览器会在一年左右就自动清空缓存，清空时间由浏览器自己权衡，这个其实并没有什么影响，只是请求会稍微变慢一点**
 ***
+### Expires
+* [Expires](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Expires)响应头包含日期/时间， 即在此时候之后，响应过期。* 无效的日期，比如 0, 代表着过去的日期，即该资源已经过期。
+* 如果在Cache-Control响应头设置了 "max-age" 或者 "s-max-age" 指令，那么 Expires 头会被**忽略**。**现在都是优先使用Cache-Control，因为Cache-Control是新版的响应头，Expires是老的响应头（十几年前一般都是用Expires）**
+* 示例
+```
+Expires: Wed, 21 Oct 2015 07:28:00 GMT
+```
+* 自己测试，用到几个API
+1. [data.now()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/now)方法返回自1970年1月1日 00:00:00 UTC到当前时间的毫秒数。
+2. [Date()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date)创建一个 JavaScript Date 实例，该实例呈现时间中的某个时刻。Date 对象则基于 Unix Time Stamp，即自1970年1月1日（UTC）起经过的毫秒数
+3. [toISOString()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)方法返回一个 ISO（ISO 8601 Extended Format）格式的字符串： YYYY-MM-DDTHH:mm:ss.sssZ。时区总是UTC（协调世界时），加一个后缀“Z”标识
+4. [toGMTString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toGMTString)方法使用Internet格林威治标准时间（GMT）约定将日期转换为字符串。返回值的确切格式toGMTString()因平台和浏览器而异，通常它应代表人类可读的日期字符串
+> 注意： toGMTString()已弃用，不应再使用。它仍然只是为了向后兼容而实现; 请toUTCString()改用。
+* 首先通过下面代码找到当前的时间格式
+```
+var a=new Date()
+a//Wed Aug 28 2019 11:27:37 GMT+0800 (中国标准时间)
+a.toGMTString()//"Wed, 28 Aug 2019 03:27:37 GMT"（ 格林尼治标准时间）
+a.toISOString()//"2019-08-28T03:27:37.884Z"（国际协调时间）
+```
+* 国际协调时间、格林尼治标准、中国标准时间都可以，比如
+```
+    response.setHeader('Expires','Wed Aug 28 2019 11:27:37 GMT+0800')
+    response.setHeader('Expires','Wed, 28 Aug 2019 03:27:37 GMT')
+    response.setHeader('Expires','2019-08-28T03:27:37.884Z')
+```
+* 需要注意的是这个时间指的是**本地时间**，并且需要等于这个时间，精确度不高，可能你设置的是Wed Aug 28 2019 11:27:37 GMT+0800，但是经过测试在11:27:00就可以清除缓存了，或者11:28:00才可以清除缓存。如果设置大于这个时间，比如11:35:00，也会清除缓存。
+* 所以**如果用户本地的时间不对，错乱就会出现一些麻烦和BUG，所这个不靠谱**，而'Cache-Control','max-age=30'是从现在开始计时，往后30s，这样就不会出错。
+### Etag
+* 
+### lastModified
+* 可以看下这篇——文章[浏览器缓存详解:expires,cache-control,last-modified,etag详细说明](https://blog.csdn.net/eroswang/article/details/8302191)

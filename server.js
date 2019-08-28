@@ -24,7 +24,8 @@ var server = http.createServer(function (request, response) {
   if(path==='/main.js'){
     let string=fs.readFileSync('./main.js','utf8')
     response.setHeader('Content-Type','application/javascript;charset=utf8')
-    response.setHeader('Cache-Control','max-age=315360000')
+    // response.setHeader('Cache-Control','max-age=315360000')
+    response.setHeader('Last-Modified','Wed Aug 28 2019 12:57:16 GMT')
     response.write(string)
     response.end()
   }
