@@ -371,6 +371,56 @@ a.toISOString()//"2019-08-28T03:27:37.884Z"（国际协调时间）
 * 需要注意的是这个时间指的是**本地时间**，并且需要等于这个时间，精确度不高，可能你设置的是Wed Aug 28 2019 11:27:37 GMT+0800，但是经过测试在11:27:00就可以清除缓存了，或者11:28:00才可以清除缓存。如果设置大于这个时间，比如11:35:00，也会清除缓存。
 * 所以**如果用户本地的时间不对，错乱就会出现一些麻烦和BUG，所这个不靠谱**，而'Cache-Control','max-age=30'是从现在开始计时，往后30s，这样就不会出错。
 ### Etag
-* 
-### lastModified
+* 了解Etag之前要先知道[MD5百度百科](https://baike.baidu.com/item/MD5/212708?fr=aladdin)，它是一个摘要算法，一种被广泛使用的密码散列函数，可以产生出一个128位（16字节）的散列值（hash value）。
+* 如果你要下载一个文件，每个文件都有一个唯一的MD5值，相当与人的指纹一样，不会重复，有些地方下载文件时会提供一个MD5值给你，下载完之后比对一下MD5值**是否相同，就能确定你下载的文件是否损坏，而且内容差异越小，计算的结果差异越大，他可以把微小的差异放大**。
+* [MD5维基百科](https://zh.wikipedia.org/wiki/MD5)
+* 如何查看MD5，可以通过
+1. win+R 输入 cmd 进入cmd命令行界面
+2. 2.输入certutil -hashfile 文件绝对路径 md5 回车
+* 如certutil -hashfile D:\1.jpg md5 回车
+* 详细见链接——[WIN 10如何查看某个文件的MD5值](https://blog.csdn.net/cc1969281777/article/details/81271337)
+* 你也可以在git bash或者linux系统中使用md5sum 目标文件
+* 如md5sum d:/1.txt 
+* 具体见链接——[查看文件MD5值](https://blog.csdn.net/u011086209/article/details/85160534)
+#### node.js来计算MD5
+* 首先在google浏览器上输入nodejs md5,然后就可以找到[链接](https://www.npmjs.com/package/md5),通过下面安装都所在目录
+```
+npm install md5
+```
+* 然后通过下面代码就可以看到这个string文件的md5值了
+```
+var md5 = require('md5');
+    let fileMd5=md5(string)
+    console.log(fileMd5)
+```
+* 然后把这个md5放到[Etag](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/ETag)里面，ETagHTTP响应头是资源的特定版本的标识符。这可以让缓存更高效，并节省带宽，因为如果内容没有改变，Web服务器不需要发送完整的响应。而如果内容发生了变化，使用ETag有助于防止资源的同时更新相互覆盖（“空中碰撞”）。
+* 如果给定URL中的资源更改，则一定要生成新的Etag值。 因此Etags类似于指纹，也可能被某些服务器用于跟踪。 比较ETags能快速确定此资源是否变化，但也可能被跟踪服务器永久存留。
+* 通过代码
+```
+    response.setHeader('ETag',fileMd5)
+```
+* 然后我们可以看到main.js这个文件的**响应里面**多了一个ETag: d10585f416e42742cb8d1327709df583，这个值就是这个string的md5，当我们**再次刷新**的时候，**请求里面把上一次相应的ETag: d10585f416e42742cb8d1327709df583放到这次请求的If-None-Match: d10585f416e42742cb8d1327709df583里面，他们的值都是一样的**，也就是**响应的ETag**对应**请求的If-None-Match**
+* 服务器将客户端的ETag（作为If-None-Match字段的值一起发送）与其当前版本的资源的ETag进行比较，如果两个值匹配（即资源未更改），服务器将**返回不带任何内容的[304未修改状态](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status/304)**，告诉客户端缓存版本可用（新鲜）。
+* 在main.js上测试， 前面的from memory cache和from disc memory是根本没有发送请求，直接用本地缓存，所以时间是0ms。而ETag是直接不下载，但是有请求，并且返回304，因为响应体是空，所以不下载，但是请求时间需要46ms。所以**还是直接用本地缓存比较好，比较劫节省时间，只需要0ms**
+* 后端main.js路由代码修改为
+```
+  if (path === '/main.js') {
+    let string = fs.readFileSync('./main.js', 'utf8')
+    response.setHeader('Content-Type', 'application/javascript;charset=utf8')
+    let fileMd5 = md5(string)
+    response.setHeader('ETag', fileMd5)
+    if (request.headers['if-none-match'] === fileMd5) {
+      response.statusCode = 304
+      //这个里面MD5值一样，就没有响应体，只有响应头，也就是有请求，但是不用下载
+    } else {
+      //这里是MD5值不一样，有响应体，并下载
+      response.statusCode = 200
+      response.write(string)
+    }
+    response.end()
+  }
+```
+### Last-Modified
 * 可以看下这篇——文章[浏览器缓存详解:expires,cache-control,last-modified,etag详细说明](https://blog.csdn.net/eroswang/article/details/8302191)
+* [Last-Modified](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Last-Modified)  是一个响应首部，其中包含源头服务器认定的资源做出修改的日期及时间。 它通常被用作一个验证器来判断接收到的或者存储的资源是否彼此一致。由于精确度比  ETag 要低，所以这是一个备用机制。包含有  If-Modified-Since 或 If-Unmodified-Since 首部的条件请求会使用这个字段。
+* 跟ETag很类似，只是它是配合

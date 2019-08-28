@@ -2,12 +2,13 @@ var http = require('http')
 var fs = require('fs')
 var url = require('url')
 var port = process.argv[2]
+var md5 = require('md5');
 
 if (!port) {
   console.log('请指定端口号好不啦？\nnode server.js 8888 这样不会吗？')
   process.exit(1)
 }
-let sessions={}
+let sessions = {}
 
 var server = http.createServer(function (request, response) {
   var parsedUrl = url.parse(request.url, true)
@@ -21,18 +22,27 @@ var server = http.createServer(function (request, response) {
   /******** 从这里开始看，上面不要看 ************/
 
   console.log('方方说：含查询字符串的路径\n' + pathWithQuery)
-  if(path==='/main.js'){
-    let string=fs.readFileSync('./main.js','utf8')
-    response.setHeader('Content-Type','application/javascript;charset=utf8')
+  if (path === '/main.js') {
+    let string = fs.readFileSync('./main.js', 'utf8')
+    response.setHeader('Content-Type', 'application/javascript;charset=utf8')
     // response.setHeader('Cache-Control','max-age=315360000')
-    response.setHeader('Last-Modified','Wed Aug 28 2019 12:57:16 GMT')
-    response.write(string)
+    // response.setHeader('Last-Modified','Wed Aug 28 2019 12:57:16 GMT')
+    let fileMd5 = md5(string)
+    response.setHeader('ETag', fileMd5)
+    if (request.headers['if-none-match'] === fileMd5) {
+      response.statusCode = 304
+      //这个里面MD5值一样，就没有响应体，只有响应头，也就是有请求，但是不用下载
+    } else {
+      //这里是MD5值不一样，有响应体，并下载
+      response.statusCode = 200
+      response.write(string)
+    }
     response.end()
   }
-  else if(path==='/default.css'){
-    let string=fs.readFileSync('./default.css','utf8')
-    response.setHeader('Content-Type','text/css;charset=utf8')
-    response.setHeader('Cache-Control','max-age=315360000')
+  else if (path === '/default.css') {
+    let string = fs.readFileSync('./default.css', 'utf8')
+    response.setHeader('Content-Type', 'text/css;charset=utf8')
+    response.setHeader('Cache-Control', 'max-age=315360000')
     response.write(string)
     response.end()
   }
@@ -52,28 +62,28 @@ var server = http.createServer(function (request, response) {
     //   hash[key]=value//把所有的信息都存入这个hash
     //   // console.log(hash)
     // }
-    let mySession=sessions[query.sessionId]//query对应前端的查询参数获取到sessionId
+    let mySession = sessions[query.sessionId]//query对应前端的查询参数获取到sessionId
     let email
     // if(sessions[hash.sessionId]){
-      if(mySession){
-      email=mySession.sign_in_email//这个sessions[hash.sessionId]一旦服务器断开后就释放不存在了，一般服务器不会断开,或者关闭之前会把session存到一个地方
+    if (mySession) {
+      email = mySession.sign_in_email//这个sessions[hash.sessionId]一旦服务器断开后就释放不存在了，一般服务器不会断开,或者关闭之前会把session存到一个地方
       //如果这个cookie本来已经保存在浏览器里面，那么就不需要判断，所以最好是判断一下
     }
-    let users=fs.readFileSync('./db/users','utf8')//读取数据库中存储的信息
-    users=JSON.parse(users)//把数据库中的字符串转换为对象
-    let found=false
-    for(i=0;i<users.length;i++){
-      if(users[i].email===email){//如果数据库中有一个邮箱和用户的邮箱(也就是cookie的值)相同，就停止退出并把found=true
-        found=true
+    let users = fs.readFileSync('./db/users', 'utf8')//读取数据库中存储的信息
+    users = JSON.parse(users)//把数据库中的字符串转换为对象
+    let found = false
+    for (i = 0; i < users.length; i++) {
+      if (users[i].email === email) {//如果数据库中有一个邮箱和用户的邮箱(也就是cookie的值)相同，就停止退出并把found=true
+        found = true
         // console.log(users)
         break
       }
     }
-    if(found){
-      string=string.replace('__zhan__', email)//如果found=true说明这个Cookie的值没问题，就把占位符替换，显示用户的邮箱
+    if (found) {
+      string = string.replace('__zhan__', email)//如果found=true说明这个Cookie的值没问题，就把占位符替换，显示用户的邮箱
     }
-    else{
-      string=string.replace('__zhan__', '不知道')//如果found=false说明这个Cookie的值有问题，就把占位符替换，显示不知道
+    else {
+      string = string.replace('__zhan__', '不知道')//如果found=false说明这个Cookie的值有问题，就把占位符替换，显示不知道
     }
 
     response.statusCode = 200
@@ -206,21 +216,21 @@ var server = http.createServer(function (request, response) {
         var users = fs.readFileSync('./db/users', 'utf8')//这里的路径必须要写上最前的点.
         users = JSON.parse(users)//这个是把能否储存的字符串对象化从而可以使用
 
-        let found=false
-        for(i=0;i<users.length;i++){
-          let user=users[i]
-          if(user.email===email&&user.password===password){//判断用户提供的邮箱和密码是否和数据库中的匹配
-            found=true
+        let found = false
+        for (i = 0; i < users.length; i++) {
+          let user = users[i]
+          if (user.email === email && user.password === password) {//判断用户提供的邮箱和密码是否和数据库中的匹配
+            found = true
             break
           }
         }
-        if(found){//如果匹配就200成功
-          let sessionId=Math.random()*100000//设置一个随机的sessionId
-          sessions[sessionId]={sign_in_email:email}//我们把用户的邮箱存到sessions里面，sessions对应的sessionId就可以找到某个用户的信息
+        if (found) {//如果匹配就200成功
+          let sessionId = Math.random() * 100000//设置一个随机的sessionId
+          sessions[sessionId] = { sign_in_email: email }//我们把用户的邮箱存到sessions里面，sessions对应的sessionId就可以找到某个用户的信息
           // response.setHeader('Set-Cookie', `sessionId=${sessionId}`)//把这个sessionId作为Cookie
           response.write(`{"sessionId":${sessionId}}`)//不写Cookie的方法,就是把sessionId通过JSON传给前端
           response.statusCode = 200
-        }else{//如果不匹配就401验证失败
+        } else {//如果不匹配就401验证失败
           response.statusCode = 401//401的意思是邮箱密码等验证失败的代码，而且必须要放到该路由的最前面才可以
           response.setHeader('Content-Type', 'application/json;charset=utf-8')
           response.write(`{
