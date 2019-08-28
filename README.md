@@ -192,7 +192,7 @@ a=2
     //但是如果乘以66倍就报错了，在Chrome浏览器的报错信息(index):36 Uncaught DOMException: Failed to execute 'setItem' on 'Storage': Setting the value of 'aaa' exceeded the quota.
 ```
 5. 常用场景：记录有没有提示过用户（不涉及隐私等敏感的信息，不能记录密码等敏感隐私信息）
-6. LocalStorage永久有效，除非用户自己清除，或者用户清理缓存，在chrome浏览器中按住Ctrl+shift+delete，你就会得到这个清楚这个浏览器的数据操作页面，对应的高级->Cookie及其他网站数据勾选，这个'及其他网站数据'就包括了LocalStorage，如果点击清楚数据，这个LocalStorage就清除了。
+6. LocalStorage永久有效，除非用户自己清除，或者用户清理缓存，在chrome浏览器中按住Ctrl+shift+delete，你就会得到这个清除这个浏览器的数据操作页面，对应的高级->Cookie及其他网站数据勾选，这个'及其他网站数据'就包括了LocalStorage，如果点击清除数据，这个LocalStorage就清除了。
 #### sessionStorage的特点
 * [sessionStorage](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/sessionStorage)属性允许你访问一个 session Storage 对象。它与 localStorage 相似，不同之处在于 localStorage 里面存储的数据没有过期时间设置，而存储在 sessionStorage 里面的数据在页面会话结束时会被清除。
 * 它跟localStorage的API一样，也就是
@@ -214,7 +214,7 @@ a=2
 * 最大的区别就是Cookie每次请求的时候都会带给服务器，而localStorage不会带到服务器上去，因为localStoage跟HTTP无关。
 * 其他的补充：Cookie的储存量一般是4KB，而localStorage会有及5MB(经过测试，我的电脑的所有浏览器可以储存65MB)
 #### 3. localStorage和sessionStorage的区别
-* sessionStorage在用户关闭页面（Session(会话)结束后，这个Session跟服务器上的Session没有一点关系）后失效，
+* sessionStorage在用户关闭页面（Session(会话)结束后，这个Session跟服务器上的Session没有一点关系）后失效。
 #### 其他
 * sessionStorage一般是会话存储，而session一般不翻译，因为session就是一个变量名而已
 ### 不基于Cookie的Session(这个有些面试官也不一定知道，所以属于超纲的知识)
@@ -450,3 +450,30 @@ var md5 = require('md5');
 #### 其他学习链接
 * [服务端的缓存验证 Last-Modified和Etag](https://blog.csdn.net/qq_31393401/article/details/81219699)
 * [HTTP(Ⅵ）—— 缓存验证Last-Modified和Etag的使用](https://blog.csdn.net/zhanghuali0210/article/details/82081113)
+
+### 本节客观测试题
+* Cookie 和 Session 的区别
+1. session相对于Cookie来说占用内存
+2. Session具有隐私性，避免用户篡改Cookie来获取其他用户的敏感信息。
+3. Session需要一个SessionId来作为Cookie发给客户端，Session通过SessionId来获取到用户的隐私信息，而不是直接通过Cookie来获取用户的隐私信息。
+4. 一般来说session是基于Cookie实现的——因为session必须将sessionId放到Cookie里面然后发给客户端，没有这个sessionId就没有session，session依赖于Cookie。Cookie是session的基石
+* Cookie 和 LocalStorage 的区别
+1. 最大的区别就是Cookie每次请求的时候都会带给服务器，而localStorage不会带到服务器上去，因为localStoage跟HTTP无关。
+2. 其他的补充：Cookie的储存量一般是4KB，而localStorage会有及5MB(经过测试，我的电脑的所有浏览器可以储存65MB)
+* LocalStorage 和 SessionStorage 的区别
+1. sessionStorage在用户关闭页面后失效，而LocalStorage不会失效。
+* Cookie 如何设置过期时间？
+1. 可以通过Max-Age，比如30秒后过期。
+```
+ response.setHeader('Set-Cookie',`a=1;Max-Age=30`)
+```
+2. 也可以通过Expires，比如设置Wed, 21 Oct 2019 07:28:00 GMT
+```
+ response.setHeader('Set-Cookie',`Expires=Wed, 21 Oct 2019 07:28:00 GMT`)
+```
+* 如何删除 Cookie？
+1. 打开开发者工具，在Application里面Storage里面的Cookies，里面有一个clear all，也就是禁止标志，一个圈里面一个斜杆——⊘，还有一个×标识，代表清除某个选定的Cookie。
+2. 在chrome浏览器中也可以通过按住Ctrl+shift+delete，你就会得到这个清除这个浏览器的数据操作页面，对应的高级->Cookie及其他网站数据勾选，如果点击清除数据，这个Cookie就清除了。
+* Cache-Control: max-age=1000 缓存 与 ETag 的「缓存」有什么区别？
+1. Cache-Control: max-age=1000 缓存代表在第一次请求1000秒内，**第二次发请求被阻断，没有发请求**，而是直接从内存中返回上一次的结果。
+2. ETag 的「缓存」是代表如果第一次请求返回的响应ETag值与第二次请求的if-none-match值一样的话，**那么就会继续发送请求**，但是这个请求的响应代码是304，说明无需再次传输请求的内容，也就是说可以使用缓存的内容。代表因为响应体是空，所以不下载。
