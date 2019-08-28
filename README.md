@@ -460,9 +460,7 @@ var md5 = require('md5');
 5. Cookie 保存在客户端，每次都随请求发送给 Server(服务器)。
 > 参考答案  
 要点：  
-
 Cookie 保存在客户端，每次都随请求发送给 Server  
-
 Session 保存在 Server 的内存里，其 Session ID 是通过 Cookie 发送给客户端的  
 #### 2.Cookie 和 LocalStorage 的区别
 1. 最大的区别就是Cookie每次请求的时候都会带给服务器，而localStorage不会带到服务器上去，因为localStoage跟HTTP无关。
