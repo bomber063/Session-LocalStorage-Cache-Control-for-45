@@ -479,7 +479,7 @@ LocalStorage 的大小限制比 Cookie 大多了
 ```
 2. 也可以通过Expires，比如设置Wed, 21 Oct 2019 07:28:00 GMT
 ```
- response.setHeader('Set-Cookie',`Expires=Wed, 21 Oct 2019 07:28:00 GMT`)
+   response.setHeader('Set-Cookie',`a=1;Expires=Wed, 21 Oct 2019 07:28:00 GMT`)
 ```
 #### 5.如何删除 Cookie？
 1. 打开开发者工具，在Application里面Storage里面的Cookies，里面有一个clear all，也就是禁止标志，一个圈里面一个斜杆——⊘，还有一个×标识，代表清除某个选定的Cookie。
