@@ -459,7 +459,7 @@ var md5 = require('md5');
 4. 一般来说session是基于Cookie实现的——因为session必须将sessionId放到Cookie里面然后发给客户端，没有这个sessionId就没有session，session依赖于Cookie。Cookie是session的基石。
 #### 2.Cookie 和 LocalStorage 的区别
 1. 最大的区别就是Cookie每次请求的时候都会带给服务器，而localStorage不会带到服务器上去，因为localStoage跟HTTP无关。
-2. 其他的补充：Cookie的储存量一般是4KB，而localStorage会有及5MB(经过测试，我的电脑的所有浏览器可以储存65MB)
+2. 其他的补充：Cookie的储存量一般是4KB，而localStorage会有5MB左右(经过测试，我的电脑的所有浏览器可以储存65MB)
 #### 3.LocalStorage 和 SessionStorage 的区别
 1. sessionStorage在用户关闭页面后失效，而LocalStorage不会失效。
 #### 4.Cookie 如何设置过期时间？
@@ -476,4 +476,4 @@ var md5 = require('md5');
 2. 在chrome浏览器中也可以通过按住Ctrl+shift+delete，你就会得到这个清除这个浏览器的数据操作页面，对应的高级->Cookie及其他网站数据勾选，如果点击清除数据，这个Cookie就清除了。
 #### 6.Cache-Control: max-age=1000 缓存 与 ETag 的「缓存」有什么区别？
 1. Cache-Control: max-age=1000 缓存代表在第一次请求1000秒内，**第二次发请求被阻断，没有发请求**，而是直接从内存中返回上一次的结果。
-2. ETag 的「缓存」是代表如果第一次请求返回的响应ETag值与第二次请求的if-none-match值一样的话，**那么就会继续发送请求**，但是这个请求的响应代码是304，说明无需再次传输请求的内容，也就是说可以使用缓存的内容。代表因为响应体是空，所以不下载。
+2. ETag 的「缓存」是代表如果第一次请求返回的响应ETag值与第二次请求的if-none-match值一样的话，**那么就会继续发送请求**，但是这个请求的响应代码是304，说明无需再次传输请求的内容，也就是说可以使用缓存的内容。因为响应体是空，所以不下载。
