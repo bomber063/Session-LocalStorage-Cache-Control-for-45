@@ -50,7 +50,8 @@ var server = http.createServer(function (request, response) {
   }
   else if (path === '/default.css') {
     let string = fs.readFileSync('./default.css', 'utf8')
-    response.setHeader('Set-Cookie',`a=1;Expires=Wed, 21 Oct 2019 07:28:00 GMT`)
+    // response.setHeader('Set-Cookie',`a=1;Expires=Wed, 21 Oct 2019 07:28:00 GMT`)
+    response.setHeader('Set-Cookie','a=1;Max-Age=-1')
     response.setHeader('Content-Type', 'text/css;charset=utf8')
     // response.setHeader('Cache-Control', 'max-age=315360000')
     response.write(string)
