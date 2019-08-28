@@ -26,17 +26,26 @@ var server = http.createServer(function (request, response) {
     let string = fs.readFileSync('./main.js', 'utf8')
     response.setHeader('Content-Type', 'application/javascript;charset=utf8')
     // response.setHeader('Cache-Control','max-age=315360000')
-    // response.setHeader('Last-Modified','Wed Aug 28 2019 12:57:16 GMT')
-    let fileMd5 = md5(string)
-    response.setHeader('ETag', fileMd5)
-    if (request.headers['if-none-match'] === fileMd5) {
-      response.statusCode = 304
-      //这个里面MD5值一样，就没有响应体，只有响应头，也就是有请求，但是不用下载
-    } else {
-      //这里是MD5值不一样，有响应体，并下载
+    response.setHeader('Last-Modified','Wed Aug 28 2019 12:57:16 GMT')
+    // console.log(response.getHeaders()['last-modified'])
+    // console.log(response.getHeader('last-modified'))
+    if(request.headers['if-modified-since']===response.getHeaders()['last-modified']){
+            response.statusCode = 304
+        //这个里面Last-Modified值一样，就没有响应体，只有响应头，也就是有请求，但是不用下载
+    }else{
+      //这里是Last-Modified值不一样，有响应体，并下载
       response.statusCode = 200
       response.write(string)
     }
+    
+    // let fileMd5 = md5(string)
+    // response.setHeader('ETag', fileMd5)
+    // if (request.headers['if-none-match'] === fileMd5) {
+      // response.statusCode = 304
+      //这个里面MD5值一样，就没有响应体，只有响应头，也就是有请求，但是不用下载
+    // } else {
+
+    // }
     response.end()
   }
   else if (path === '/default.css') {

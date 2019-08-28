@@ -423,4 +423,30 @@ var md5 = require('md5');
 ### Last-Modified
 * 可以看下这篇——文章[浏览器缓存详解:expires,cache-control,last-modified,etag详细说明](https://blog.csdn.net/eroswang/article/details/8302191)
 * [Last-Modified](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Last-Modified)  是一个响应首部，其中包含源头服务器认定的资源做出修改的日期及时间。 它通常被用作一个验证器来判断接收到的或者存储的资源是否彼此一致。由于精确度比  ETag 要低，所以这是一个备用机制。包含有  If-Modified-Since 或 If-Unmodified-Since 首部的条件请求会使用这个字段。
-* 跟ETag很类似，只是它是配合
+* 用到一个后端获取后端自己设置的请求头API——(Response.headers)[https://developer.mozilla.org/zh-CN/docs/Web/API/Response/headers]
+* 获取到last-modified，下面两种方法都可以
+```
+    // console.log(response.getHeaders()['last-modified'])
+    // console.log(response.getHeader('last-modified'))
+```
+* 后端代码修改为
+```
+  if (path === '/main.js') {
+    let string = fs.readFileSync('./main.js', 'utf8')
+    response.setHeader('Content-Type', 'application/javascript;charset=utf8')
+    response.setHeader('Last-Modified','Wed Aug 28 2019 12:57:16 GMT')
+    if(request.headers['if-modified-since']===response.getHeaders()['last-modified']){
+            response.statusCode = 304
+        //这个里面Last-Modified值一样，就没有响应体，只有响应头，也就是有请求，但是不用下载
+    }else{
+      //这里是Last-Modified值不一样，有响应体，并下载
+      response.statusCode = 200
+      response.write(string)
+    }
+    response.end()
+  }
+```
+* 跟ETag很类似，只是响应Last-Modified是配合请求的[if-modified-since](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/If-Modified-Since)。
+#### 其他学习链接
+* [服务端的缓存验证 Last-Modified和Etag](https://blog.csdn.net/qq_31393401/article/details/81219699)
+* [HTTP(Ⅵ）—— 缓存验证Last-Modified和Etag的使用](https://blog.csdn.net/zhanghuali0210/article/details/82081113)
